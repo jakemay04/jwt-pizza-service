@@ -1,5 +1,49 @@
 const request = require('supertest');
-const app = require('../service');
+
+// Mock the database module so tests don't require a live MySQL instance.
+jest.mock('./database/database.js', () => {
+  const users = [];
+  let nextId = 1;
+  const tokens = new Set();
+
+  const Role = { Admin: 'admin', Diner: 'diner', Franchisee: 'franchisee' };
+
+  return {
+    Role,
+    DB: {
+      async addUser(user) {
+        const id = nextId++;
+        const stored = { id, name: user.name, email: user.email, password: user.password, roles: user.roles };
+        users.push(stored);
+        return { ...stored, password: undefined };
+      },
+      async getUser(email, password) {
+        const u = users.find((x) => x.email === email);
+        if (!u || (password && u.password !== password)) {
+          const err = new Error('unknown user');
+          err.statusCode = 404;
+          throw err;
+        }
+        return { id: u.id, name: u.name, email: u.email, roles: u.roles, password: undefined };
+      },
+      async loginUser(userId, token) {
+        // store signature portion
+        const sig = token.split('.')?.[2] ?? token;
+        tokens.add(sig);
+      },
+      async isLoggedIn(token) {
+        const sig = token.split('.')?.[2] ?? token;
+        return tokens.has(sig);
+      },
+      async logoutUser(token) {
+        const sig = token.split('.')?.[2] ?? token;
+        tokens.delete(sig);
+      },
+    },
+  };
+});
+
+const app = require('./service');
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 let testUserAuthToken;
