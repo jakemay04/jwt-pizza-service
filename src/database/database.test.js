@@ -1,8 +1,4 @@
-const { DB } = require('./database');
-const bcrypt = require('bcrypt');
-const mysql = require('mysql2/promise');
-
-// Mock dependencies
+// Mock dependencies BEFORE requiring database
 jest.mock('mysql2/promise');
 jest.mock('bcrypt');
 jest.mock('../config.js', () => ({
@@ -21,6 +17,26 @@ jest.mock('../endpointHelper.js', () => ({
 }));
 jest.mock('../model/model.js', () => ({ Role: { Admin: 'admin', Diner: 'diner', Franchisee: 'franchisee' } }));
 jest.mock('./dbModel.js', () => ({ tableCreateStatements: ['CREATE TABLE user', 'CREATE TABLE franchise'] }));
+
+const bcrypt = require('bcrypt');
+const mysql = require('mysql2/promise');
+
+// Setup initial mocks for database initialization
+const mockInitConnection = {
+  execute: jest.fn().mockResolvedValue([[]]), // Database doesn't exist check
+  query: jest.fn().mockResolvedValue([]),
+  end: jest.fn()
+};
+mysql.createConnection = jest.fn().mockResolvedValue(mockInitConnection);
+
+// Suppress console.error during initialization
+const originalError = console.error;
+console.error = jest.fn();
+
+const { DB } = require('./database');
+
+// Restore console.error after import
+console.error = originalError;
 
 describe('Database', () => {
   let mockConnection;
