@@ -1,6 +1,5 @@
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
-const { StatusCodeError } = require('../endpointHelper.js');
 const { Role } = require('../model/model.js');
 
 // Mock mysql2/promise before importing DB
