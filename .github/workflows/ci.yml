@@ -80,4 +80,4 @@ jobs:
           echo "Color: $color"
           
           # Remove -s to see response
-          curl -X POST "https://pizza-factory.cs329.click/api/badge/${{ secrets.NET_ID }}/jwtpizzaservicecoverage?label=Coverage&value=$coverage%25&color=$color" -H "authorization: bearer ${{ secrets.FACTORY_API_KEY }}"
+          curl -X POST "https://pizza-factory.cs329.click/api/badge/${{ secrets.JWT_SECRET }}/jwtpizzaservicecoverage?label=Coverage&value=$coverage%25&color=$color" -H "authorization: bearer ${{ secrets.FACTORY_API_KEY }}"
