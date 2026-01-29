@@ -1,4 +1,9 @@
 const { DB } = require('./database/database.js');
+const { Role } = require('../model/model.js');
+
+function randomName() {
+  return 'admin_' + Math.random().toString(36).substring(2, 8);
+}
 
 async function createAdminUser() {
   let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
@@ -10,3 +15,5 @@ async function createAdminUser() {
 
   return user;
 }
+
+module.exports = { createAdminUser, randomName };
