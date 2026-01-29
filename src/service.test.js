@@ -2,7 +2,7 @@ const request = require('supertest');
 const app = require('./service');
 
 // Mock the database module - adjust this path to match your actual DB module
-jest.mock('./database.js', () => ({
+jest.mock('./database/database.js', () => ({
   query: jest.fn(),
   getConnection: jest.fn(),
   // Add other database methods you use
@@ -12,7 +12,7 @@ jest.mock('./database.js', () => ({
 jest.mock('./routes/orderRouter.js', () => {
   const express = require('express');
   const router = express.Router();
-  const db = require('./database.js');
+  const db = require('./database/database.js');
   
   // Example: GET /api/order - get all orders
   router.get('/', async (req, res, next) => {
@@ -92,7 +92,7 @@ jest.mock('./config.js', () => ({
 }));
 
 // Get the mocked database
-const db = require('./database.js');
+const db = require('./database/database.js');
 
 describe('JWT Pizza Service with Database Mocking', () => {
   // Clear all mocks before each test
