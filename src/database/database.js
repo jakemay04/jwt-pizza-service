@@ -75,6 +75,39 @@ class DB {
     }
   }
 
+  async getUsers(authUser, page = 0, limit = config.db.listPerPage, nameFilter = '*') {
+    const connection = await this.getConnection();
+    try {
+      const currentPage = Number(page) || 0;
+      const listLimit = Number(limit) || config.db.listPerPage;
+      const offset = currentPage * listLimit;
+      const wildcardFilter = (nameFilter || '*').replace(/\*/g, '%');
+
+      let users;
+      if (authUser.isRole(Role.Admin)) {
+        users = await this.query(connection, `SELECT id, name, email FROM user WHERE name LIKE ? OR email LIKE ? ORDER BY id LIMIT ${listLimit + 1} OFFSET ${offset}`, [wildcardFilter, wildcardFilter]);
+      } else {
+        users = await this.query(connection, `SELECT id, name, email FROM user WHERE id=? AND (name LIKE ? OR email LIKE ?) ORDER BY id LIMIT ${listLimit + 1} OFFSET ${offset}`, [authUser.id, wildcardFilter, wildcardFilter]);
+      }
+
+      const more = users.length > listLimit;
+      if (more) {
+        users = users.slice(0, listLimit);
+      }
+
+      for (const user of users) {
+        const roleResult = await this.query(connection, `SELECT role, objectId FROM userRole WHERE userId=?`, [user.id]);
+        user.roles = roleResult.map((role) => {
+          return { objectId: role.objectId || undefined, role: role.role };
+        });
+      }
+
+      return [users, more];
+    } finally {
+      connection.end();
+    }
+  }
+
   async updateUser(userId, name, email, password) {
     const connection = await this.getConnection();
     try {
