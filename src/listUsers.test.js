@@ -31,3 +31,12 @@ async function registerUser(service) {
 function randomName() {
   return Math.random().toString(36).substring(2, 12);
 }
+
+test('delete user', async () => {
+  const [user, userToken] = await registerUser(request(app));
+  const deleteRes = await request(app)
+    .delete(`/api/user/${user.id}`)
+    .set('Authorization', 'Bearer ' + userToken);
+  expect(deleteRes.status).toBe(200);
+  expect(deleteRes.body.message).toBe('user deleted');
+});
