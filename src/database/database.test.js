@@ -129,6 +129,28 @@ describe('Database', () => {
 
       expect(bcrypt.hash).toHaveBeenCalled();
     });
+
+    test('getUsers returns list of users from database', async () => {
+      mockConnection.execute.mockResolvedValueOnce([[{ id: 1, name: 'User One', email: 'user1@test.com' }]]);
+      mockConnection.execute.mockResolvedValueOnce([[{ role: 'diner', objectId: 0 }]]);
+
+      const adminUser = {
+        id: 999,
+        isRole: (role) => role === 'admin',
+      };
+
+      const [users, more] = await DB.getUsers(adminUser, 0, 10, '*');
+
+      expect(users).toHaveLength(1);
+      expect(users[0]).toEqual({
+        id: 1,
+        name: 'User One',
+        email: 'user1@test.com',
+        roles: [{ role: 'diner', objectId: undefined }],
+      });
+      expect(more).toBe(false);
+      expect(mockConnection.execute).toHaveBeenCalledWith(expect.stringContaining('SELECT id, name, email FROM user'), ['%', '%']);
+    });
   });
 
   describe('Authentication', () => {
