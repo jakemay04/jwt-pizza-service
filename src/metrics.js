@@ -2,6 +2,7 @@ const config = require('./config');
 
 // Metrics stored in memory
 const httpMetrics = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
+const authMetrics = { success: 0, failure: 0 };
 
 // Middleware to track request
 function requestTracker(req, res, next) {
@@ -9,6 +10,14 @@ function requestTracker(req, res, next) {
   httpMetrics[req.method] = (httpMetrics[req.method] || 0) + 1;
 
   next();
+}
+
+function authAttempt(success) {
+  if (success) {
+    authMetrics.success++;
+  } else {
+    authMetrics.failure++;
+  }
 }
 
 // This will periodically send metrics to Grafana
