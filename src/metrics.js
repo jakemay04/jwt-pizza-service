@@ -1,19 +1,18 @@
 const config = require('./config');
 
 // Metrics stored in memory
-const requests = {};
-let greetingChangedCount = 0;
+const httpMetrics = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
 
-// Function to track when the greeting is changed
-function greetingChanged() {
-  greetingChangedCount++;
-}
-
-// Middleware to track requests
+// Middleware to track request
 function requestTracker(req, res, next) {
-  const endpoint = `[${req.method}] ${req.path}`;
-  requests[endpoint] = (requests[endpoint] || 0) + 1;
+  const endpoint = `${req.method} ${req.path}`;
+  httpMetrics.total++;
+  httpMetrics[req.method] = (httpMetrics[req.method] || 0) + 1;
   next();
+
+  res.on('finish', () => {
+    latencyMetrics.service = Date.now() - start;
+  });
 }
 
 // This will periodically send metrics to Grafana
@@ -28,6 +27,7 @@ setInterval(() => {
   sendMetricToGrafana(metrics);
 }, 10000);
 
+//metric builder
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
   attributes = { ...attributes, source: config.source };
 
@@ -60,6 +60,7 @@ function createMetric(metricName, metricValue, metricUnit, metricType, valueType
   return metric;
 }
 
+//format metrics and send to grafana
 function sendMetricToGrafana(metrics) {
   const body = {
     resourceMetrics: [
