@@ -5,31 +5,26 @@ const httpMetrics = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
 
 // Middleware to track request
 function requestTracker(req, res, next) {
-  const endpoint = `${req.method} ${req.path}`;
   httpMetrics.total++;
   httpMetrics[req.method] = (httpMetrics[req.method] || 0) + 1;
-  next();
 
-  res.on('finish', () => {
-    latencyMetrics.service = Date.now() - start;
-  });
+  next();
 }
 
 // This will periodically send metrics to Grafana
 setInterval(() => {
   const metrics = [];
-  Object.keys(requests).forEach((endpoint) => {
-    metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
+  Object.keys(httpMetrics).forEach((method) => {
+    metrics.push(createMetric('http_requests_total', httpMetrics[method], '1', 'sum', 'asInt', { method }));
   });
 
-  metrics.push(createMetric('greetingChange', greetingChangedCount, '1', 'sum', 'asInt', {}));
 
   sendMetricToGrafana(metrics);
 }, 10000);
 
 //metric builder
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
-  attributes = { ...attributes, source: config.source };
+  attributes = { ...attributes, source: config.metrics.source };
 
   const metric = {
     name: metricName,
@@ -74,10 +69,10 @@ function sendMetricToGrafana(metrics) {
     ],
   };
 
-  fetch(`${config.endpointUrl}`, {
+  fetch(`${config.metrics.endpointUrl}`, {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { Authorization: `Bearer ${config.accountId}:${config.apiKey}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${config.metrics.accountId}:${config.metrics.apiKey}`, 'Content-Type': 'application/json' },
   })
     .then((response) => {
       if (!response.ok) {
@@ -89,4 +84,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, greetingChanged };
+module.exports = { requestTracker };
