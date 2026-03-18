@@ -5,6 +5,7 @@ const httpMetrics = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
 const authMetrics = { success: 0, failure: 0 };
 const pizzaOrderMetrics = { sold: 0, failed: 0, revenue: 0 };
 const latencyMetrics = { service: 0, pizzaCreation: 0 };
+let activeUsers = 0;
 
 // Middleware to track request
 function requestTracker(req, res, next) {
@@ -33,6 +34,9 @@ function pizzaOrderTracker(success, latency, revenue) {
     console.log('❌ Pizza failed:', pizzaOrderMetrics);
   }
 }
+
+function incrementActiveUsers() { activeUsers++; }
+function decrementActiveUsers() { if (activeUsers > 0) activeUsers--; }
 
 // This will periodically send metrics to Grafana
 setInterval(() => {
@@ -116,4 +120,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, authAttempt, pizzaOrderTracker };
+module.exports = { requestTracker, authAttempt, pizzaOrderTracker, incrementActiveUsers, decrementActiveUsers };
