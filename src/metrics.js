@@ -35,7 +35,7 @@ function pizzaOrderTracker(success, latency, revenue) {
   }
 }
 
-function incrementActiveUsers() { activeUsers++; }
+function incrementActiveUsers() { activeUsers++; console.log('👥 Active users:', activeUsers); }
 function decrementActiveUsers() { if (activeUsers > 0) activeUsers--; }
 
 // This will periodically send metrics to Grafana
@@ -54,6 +54,8 @@ setInterval(() => {
 
   metrics.push(createMetric('latency_service' , latencyMetrics.service, 'ms', 'gauge', 'asDouble', {}));
   metrics.push(createMetric('pizza_creation_latency', latencyMetrics.pizzaCreation, 'ms', 'gauge', 'asDouble', {}));
+
+  metrics.push(createMetric('active_users', activeUsers, '1', 'gauge', 'asInt', {}));
 
   sendMetricToGrafana(metrics);
 }, 10000);
