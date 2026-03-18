@@ -23,12 +23,14 @@ function authAttempt(success) {
 }
 
 function pizzaOrderTracker(success, latency, revenue) {
-  latencyMetrics.pizzaCreation = latencyMs;
+  latencyMetrics.pizzaCreation = latency;
   if (success) {
     pizzaOrderMetrics.sold++;
     pizzaOrderMetrics.revenue += revenue;
+    console.log('🍕 Pizza sold:', pizzaOrderMetrics);
   } else {
     pizzaOrderMetrics.failed++;
+    console.log('❌ Pizza failed:', pizzaOrderMetrics);
   }
 }
 

@@ -3,6 +3,7 @@ const config = require('../config.js');
 const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
+const metrics = require('../metrics.js');
 
 const orderRouter = express.Router();
 
@@ -77,18 +78,30 @@ orderRouter.post(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    console.log('📦 Order received');
     const orderReq = req.body;
-    const order = await DB.addDinerOrder(req.user, orderReq);
-    const r = await fetch(`${config.factory.url}/api/order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },
-      body: JSON.stringify({ diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order }),
-    });
-    const j = await r.json();
-    if (r.ok) {
-      res.send({ order, followLinkToEndChaos: j.reportUrl, jwt: j.jwt });
-    } else {
-      res.status(500).send({ message: 'Failed to fulfill order at factory', followLinkToEndChaos: j.reportUrl });
+    const start = Date.now();
+    try {
+      const order = await DB.addDinerOrder(req.user, orderReq);
+      const r = await fetch(`${config.factory.url}/api/order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },
+        body: JSON.stringify({ diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order }),
+      });
+      const j = await r.json();
+      const latency = Date.now() - start;
+      if (r.ok) {
+        res.send({ order, followLinkToEndChaos: j.reportUrl, jwt: j.jwt });
+        const totalRevenue = req.body.items.reduce((sum, item) => sum + item.price, 0);
+        metrics.pizzaOrderTracker(true, latency, totalRevenue);
+      } else {
+        
+        metrics.pizzaOrderTracker(false, latency, 0);
+        res.status(500).send({ message: 'Failed to fulfill order at factory', followLinkToEndChaos: j.reportUrl });
+      }
+    } catch (e) {
+      metrics.pizzaOrderTracker(false, Date.now() - start, 0);
+      throw e;
     }
   })
 );
