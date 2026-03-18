@@ -3,6 +3,8 @@ const config = require('./config');
 // Metrics stored in memory
 const httpMetrics = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
 const authMetrics = { success: 0, failure: 0 };
+const pizzaOrderMetrics = { sold: 0, failed: 0, revenue: 0 };
+const latencyMetrics = { service: 0, pizzaCreation: 0 };
 
 // Middleware to track request
 function requestTracker(req, res, next) {
@@ -20,6 +22,16 @@ function authAttempt(success) {
   }
 }
 
+function pizzaOrderTracker(success, latency, revenue) {
+  latencyMetrics.pizzaCreation = latencyMs;
+  if (success) {
+    pizzaOrderMetrics.sold++;
+    pizzaOrderMetrics.revenue += revenue;
+  } else {
+    pizzaOrderMetrics.failed++;
+  }
+}
+
 // This will periodically send metrics to Grafana
 setInterval(() => {
   const metrics = [];
@@ -27,6 +39,15 @@ setInterval(() => {
     metrics.push(createMetric('http_requests_total', httpMetrics[method], '1', 'sum', 'asInt', { method }));
   });
 
+  metrics.push(createMetric('auth_attempts', authMetrics.success, '1', 'sum', 'asInt', { result: 'success' }));
+  metrics.push(createMetric('auth_attempts', authMetrics.failure, '1', 'sum', 'asInt', { result: 'failure' }));
+
+  metrics.push(createMetric('pizza_sold', pizzaOrderMetrics.sold, '1', 'sum', 'asInt', { result: 'success' }));
+  metrics.push(createMetric('pizza_failed', pizzaOrderMetrics.failed, '1', 'sum', 'asInt', { result: 'failure' }));
+  metrics.push(createMetric('pizza_revenue', pizzaOrderMetrics.revenue, 'USD', 'sum', 'asDouble', { result: 'success' }));
+
+  metrics.push(createMetric('latency_service' , latencyMetrics.service, 'ms', 'gauge', 'asDouble', {}));
+  metrics.push(createMetric('pizza_creation_latency', latencyMetrics.pizzaCreation, 'ms', 'gauge', 'asDouble', {}));
 
   sendMetricToGrafana(metrics);
 }, 10000);
@@ -93,4 +114,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker };
+module.exports = { requestTracker, authAttempt, pizzaOrderTracker };
