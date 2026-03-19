@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE="http://localhost:3000"
+BASE="https://pizza-service.jakepizza.click"
 
 # Login to get token
 echo "Logging in..."

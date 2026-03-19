@@ -11,8 +11,12 @@ let activeUsers = 0;
 // Middleware to track request
 function requestTracker(req, res, next) {
   const start = Date.now();
-  httpMetrics.total++;
-  httpMetrics[req.method] = (httpMetrics[req.method] || 0) + 1;
+  const validMethods = ['GET', 'POST', 'PUT', 'DELETE'];
+
+  if (validMethods.includes(req.method)) {
+    httpMetrics.total++;
+    httpMetrics[req.method]++;
+  }
 
   res.on('finish', () => {
     latencyMetrics.service = Date.now() - start;
