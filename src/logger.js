@@ -67,7 +67,7 @@ class Logger {
     }
 
     sendLogToGrafana(event) {
-        const body = json.stringify(event);
+        const body = JSON.stringify(event);
         fetch(config.logging.endpointUrl, {
             method: 'POST',
             body,
