@@ -1,5 +1,6 @@
 const { request } = require('express');
 const config = require('./config');
+const js = require('@eslint/js');
 
 class Logger {
     log(level, type, data) {
@@ -65,5 +66,20 @@ class Logger {
        }
     }
 
-   
+    sendLogToGrafana(event) {
+        const body = json.stringify(event);
+        fetch(config.logging.endpointUrl, {
+            method: 'POST',
+            body,
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${config.logging.accountId}:${config.logging.apiKey}`
+            },
+        }).then(res => {
+            if (!res.ok) {
+                res.text().then((t) => 
+                    console.error('Failed to send log to Grafana:', t));
+            }
+        }).catch((err) => console.error('Logger fetch error:', err));
+    }
 }
