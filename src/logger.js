@@ -1,17 +1,22 @@
-const { request } = require('express');
 const config = require('./config');
-const js = require('@eslint/js');
 
 class Logger {
     log(level, type, data) {
-        const sanatized = this.saranizeData(data);
-        const labels = {
-            componatent: config.logging.source,
-            level: level,
-            type: type,
+        const sanitized = this.sanitize(data);
+        const event = {
+            streams: [
+            {
+                stream: {
+                component: config.logging.source,
+                type: type,
+                },
+                values: [
+                [`${Date.now()}000000`, JSON.stringify({ level, type, ...sanitized })]
+                ],
+            },
+            ],
         };
-        const values = [[`${Date.now()}000000`, JSON.stringify({ level, type, ...sanatized})]];
-        this.sendLogToGrafana({ streams: [{ stream: labels, values }] });
+        this.sendLogToGrafana(event);
 
     }
 
@@ -52,12 +57,13 @@ class Logger {
         this.log('error', 'exception', { message: err.message, stack: err.stack });
     }
 
-    saranizeData(data) {
+    sanitize(data) {
         const raw = JSON.stringify(data);
         const cleaned = raw
-       .replace(/"password"\s*:\s*"[^"]*"/g, '"password":"***"')
-       .replace(/"token"\s*:\s*"[^"]*"/g, '"token":"***"')
-       .replace(/"apiKey"\s*:\s*"[^"]*"/g, '"apiKey":"***"');
+            .replace(/"password"\s*:\s*"[^"]*"/g, '"password":"***"')
+            .replace(/password='[^']*'/g, "password='***'")
+            .replace(/"token"\s*:\s*"[^"]*"/g, '"token":"***"')
+            .replace(/"apiKey"\s*:\s*"[^"]*"/g, '"apiKey":"***"');
 
        try {
         return JSON.parse(cleaned);
