@@ -38,4 +38,32 @@ class Logger {
         });
         next();
     }
+
+    dbLogger(sql) {
+        this.log('info', 'db', { sql });
+    }
+
+    factoryLogger(direction, data) {
+        this.log('info', 'factory', { direction, data });
+    }
+
+    exceptionLogger(err) {
+        this.log('error', 'exception', { message: err.message, stack: err.stack });
+    }
+
+    saranizeData(data) {
+        const raw = JSON.stringify(data);
+        const cleaned = raw
+       .replace(/"password"\s*:\s*"[^"]*"/g, '"password":"***"')
+       .replace(/"token"\s*:\s*"[^"]*"/g, '"token":"***"')
+       .replace(/"apiKey"\s*:\s*"[^"]*"/g, '"apiKey":"***"');
+
+       try {
+        return JSON.parse(cleaned);
+       } catch {
+        return { raw: cleaned };
+       }
+    }
+
+   
 }
