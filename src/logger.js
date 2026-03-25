@@ -83,3 +83,6 @@ class Logger {
         }).catch((err) => console.error('Logger fetch error:', err));
     }
 }
+
+const logger = new Logger();
+module.exports = logger;
