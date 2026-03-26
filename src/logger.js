@@ -3,11 +3,12 @@ const config = require('./config');
 class Logger {
     log(level, type, data) {
         const sanitized = this.sanitize(data);
+        const source = config.logging?.source ?? 'jwt-pizza-service';
         const event = {
             streams: [
             {
                 stream: {
-                component: config.logging.source,
+                component: source,
                 type: type,
                 },
                 values: [
@@ -73,6 +74,7 @@ class Logger {
     }
 
     sendLogToGrafana(event) {
+        if (!config.logging?.endpointUrl) return;
         const body = JSON.stringify(event);
         fetch(config.logging.endpointUrl, {
             method: 'POST',
