@@ -6,7 +6,6 @@ const userRouter = require('./routes/userRouter.js');
 const version = require('./version.json');
 const config = require('./config.js');
 const metrics = require('./metrics.js');
-const Logger = require('./logger.js');
 const logger = require('./logger.js');
 
 const app = express();
