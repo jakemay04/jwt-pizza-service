@@ -61,12 +61,11 @@ class Logger {
     sanitize(data) {
         const raw = JSON.stringify(data);
         const cleaned = raw
-            .replace(/"password"\s*:\s*"[^"]*"/g, '"password":"***"')
-            .replace(/password='[^']*'/g, "password='***'")
-            .replace(/"token"\s*:\s*"[^"]*"/g, '"token":"***"')
-            .replace(/"apiKey"\s*:\s*"[^"]*"/g, '"apiKey":"***"');
-
+            .replace(/"password"\s*:\s*("[^"]*"|\d+|null|\[[^\]]*\]|\{[^}]*\})/g, '"password":"***"')
+            .replace(/"token"\s*:\s*("[^"]*"|\d+|null|\[[^\]]*\]|\{[^}]*\})/g, '"token":"***"')
+            .replace(/"apiKey"\s*:\s*("[^"]*"|\d+|null|\[[^\]]*\]|\{[^}]*\})/g, '"apiKey":"***"')
        try {
+        console.log('Cleaned log data:', cleaned);
         return JSON.parse(cleaned);
        } catch {
         return { raw: cleaned };
