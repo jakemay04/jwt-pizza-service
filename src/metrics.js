@@ -6,7 +6,7 @@ const httpMetrics = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
 const authMetrics = { success: 0, failure: 0 };
 const pizzaOrderMetrics = { sold: 0, failed: 0, revenue: 0 };
 const latencyMetrics = { service: 0, pizzaCreation: 0 };
-let activeUsers = 0;
+let usersActive = 0;
 
 // Middleware to track request
 function requestTracker(req, res, next) {
@@ -46,15 +46,15 @@ function pizzaOrderTracker(success, latency, revenue) {
 }
 
 function incrementActiveUsers() { 
-  activeUsers++; 
-  console.log('👥 Active users:', activeUsers);
+  usersActive++; 
+  console.log('👥 Active users:', usersActive);
   setTimeout(() => {
     decrementActiveUsers();
   }, 3600000);
 }
 
 function decrementActiveUsers() { 
-  if (activeUsers > 0) activeUsers--; 
+  if (usersActive > 0) usersActive--; 
 }
 
 function getCpuUsagePercentage() {
@@ -99,7 +99,7 @@ setInterval(() => {
   metrics.push(createMetric('latency_service', latencyMetrics.service, 'ms', 'gauge', 'asDouble', {}));
   metrics.push(createMetric('pizza_creation_latency', latencyMetrics.pizzaCreation, 'ms', 'gauge', 'asDouble', {}));
 
-  metrics.push(createMetric('active_users', activeUsers, '1', 'gauge', 'asInt', {}));
+  metrics.push(createMetric('active_users', usersActive, '1', 'gauge', 'asInt', {}));
 
   metrics.push(createMetric('cpu_usage_percent', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}));
   metrics.push(createMetric('memory_usage_percent', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}));
