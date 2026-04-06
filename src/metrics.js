@@ -6,7 +6,7 @@ const httpMetrics = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
 const authMetrics = { success: 0, failure: 0 };
 const pizzaOrderMetrics = { sold: 0, failed: 0, revenue: 0 };
 const latencyMetrics = { service: 0, pizzaCreation: 0 };
-const activeUsers = 0;
+let activeUsers = 0;
 
 // Middleware to track request
 function requestTracker(req, res, next) {
@@ -45,8 +45,17 @@ function pizzaOrderTracker(success, latency, revenue) {
   }
 }
 
-function incrementActiveUsers() { activeUsers++; console.log('👥 Active users:', activeUsers); }
-function decrementActiveUsers() { if (activeUsers > 0) activeUsers--; }
+function incrementActiveUsers() { 
+  activeUsers++; 
+  console.log('👥 Active users:', activeUsers);
+  setTimeout(() => {
+    decrementActiveUsers();
+  }, 3600000);
+}
+
+function decrementActiveUsers() { 
+  if (activeUsers > 0) activeUsers--; 
+}
 
 function getCpuUsagePercentage() {
   const cpus = os.cpus();
